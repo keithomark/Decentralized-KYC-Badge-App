@@ -1,8 +1,8 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { SectionCard } from "@/components/ui/section-card";
+import { shortenAddress, outlineButtonStyles } from "@/utils/common";
 
 interface WalletSectionProps {
   walletAddress: string;
@@ -11,10 +11,6 @@ interface WalletSectionProps {
 const WalletSection = ({ walletAddress }: WalletSectionProps) => {
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
-
-  const shortenAddress = (address: string) => {
-    return `${address.slice(0, 6)}...${address.slice(-4)}`;
-  };
 
   const copyAddress = async () => {
     try {
@@ -31,24 +27,23 @@ const WalletSection = ({ walletAddress }: WalletSectionProps) => {
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto border-web3-border bg-card/50 backdrop-blur-sm">
-      <CardHeader>
-        <CardTitle className="text-lg">Your Wallet</CardTitle>
-        <CardDescription>Your Solana wallet address</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <SectionCard
+      title="Your Wallet"
+      description="Your Solana wallet address"
+    >
+      <div className="space-y-4">
         <div className="p-4 bg-muted rounded-lg border border-web3-border">
           <p className="font-mono text-sm text-center">{shortenAddress(walletAddress)}</p>
         </div>
         <Button
           onClick={copyAddress}
           variant="outline"
-          className="w-full border-web3-border hover:bg-web3-primary/10"
+          className={outlineButtonStyles}
         >
           {copied ? "Copied!" : "Copy Address"}
         </Button>
-      </CardContent>
-    </Card>
+      </div>
+    </SectionCard>
   );
 };
 
