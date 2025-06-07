@@ -1,70 +1,23 @@
-import { useCallback, useEffect, useState } from 'react';
-import { CivicPass } from '@civic/auth-web3';
-import { Connection, PublicKey } from '@solana/web3.js';
+import { useAuth } from '@civic/auth-web3/react';
+import { useMemo } from 'react';
 
-interface UseCivicAuthReturn {
-  wallet: PublicKey | null;
-  isLoading: boolean;
-  error: string | null;
-  connect: () => Promise<void>;
-  disconnect: () => void;
-}
+export const useCivicAuth = () => {
+  const { wallet, pending, connected, error, login, logout } = useAuth();
 
-export const useCivicAuth = (): UseCivicAuthReturn => {
-  const [wallet, setWallet] = useState<PublicKey | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const connect = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      // Initialize Civic Pass
-      const pass = new CivicPass();
-      await pass.connect();
-
-      // Get the connected wallet address
-      const walletAddress = await pass.getWalletAddress();
-      setWallet(new PublicKey(walletAddress));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to connect wallet');
-      setWallet(null);
-    } finally {
-      setIsLoading(false);
+  const walletAddress = useMemo(() => {
+    if (wallet?.publicKey) {
+      return wallet.publicKey.toBase58();
     }
-  }, []);
-
-  const disconnect = useCallback(() => {
-    setWallet(null);
-  }, []);
-
-  useEffect(() => {
-    // Check if wallet is already connected
-    const checkConnection = async () => {
-      try {
-        const pass = new CivicPass();
-        const isConnected = await pass.isConnected();
-        
-        if (isConnected) {
-          const walletAddress = await pass.getWalletAddress();
-          setWallet(new PublicKey(walletAddress));
-        }
-      } catch (err) {
-        console.error('Error checking wallet connection:', err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkConnection();
-  }, []);
+    return null;
+  }, [wallet?.publicKey]);
 
   return {
     wallet,
-    isLoading,
-    error,
-    connect,
-    disconnect,
+    pending,
+    connected,
+    error: error ? (error instanceof Error ? error.message : String(error)) : null,
+    login,
+    logout,
+    walletAddress,
   };
 }; 

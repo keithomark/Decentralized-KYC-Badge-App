@@ -6,6 +6,7 @@ interface BadgeDisplayProps {
   metadataUrl: string;
   imageUrl: string;
   isLoading?: boolean;
+  walletAddress?: string | null; // Add walletAddress prop
 }
 
 export const BadgeDisplay: React.FC<BadgeDisplayProps> = ({
@@ -14,6 +15,7 @@ export const BadgeDisplay: React.FC<BadgeDisplayProps> = ({
   metadataUrl,
   imageUrl,
   isLoading = false,
+  walletAddress, // Destructure walletAddress
 }) => {
   const explorerUrl = `https://explorer.solana.com/tx/${transactionId}?cluster=devnet`;
 
@@ -49,6 +51,12 @@ export const BadgeDisplay: React.FC<BadgeDisplayProps> = ({
       </div>
 
       <div className="w-full space-y-3">
+        {walletAddress && ( // Display Wallet Address if available
+          <div className="text-sm">
+            <span className="font-medium text-gray-700">Wallet Address:</span>
+            <p className="text-gray-600 break-all">{walletAddress}</p>
+          </div>
+        )}
         <div className="text-sm">
           <span className="font-medium text-gray-700">Mint Address:</span>
           <p className="text-gray-600 break-all">{mintAddress}</p>

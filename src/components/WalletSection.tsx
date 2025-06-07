@@ -3,16 +3,15 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { SectionCard } from "@/components/ui/section-card";
 import { shortenAddress, outlineButtonStyles } from "@/utils/common";
+import { useCivicAuth } from "@/hooks/useCivicAuth"; // Import the hook
 
-interface WalletSectionProps {
-  walletAddress: string;
-}
-
-const WalletSection = ({ walletAddress }: WalletSectionProps) => {
+const WalletSection = () => { // Remove walletAddress prop
+  const { walletAddress } = useCivicAuth(); // Use the hook
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
 
   const copyAddress = async () => {
+    if (!walletAddress) return; // Guard against null walletAddress
     try {
       await navigator.clipboard.writeText(walletAddress);
       setCopied(true);
@@ -23,8 +22,17 @@ const WalletSection = ({ walletAddress }: WalletSectionProps) => {
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       console.error("Failed to copy address:", err);
+      toast({ // Add toast for copy failure
+        title: "Copy Failed",
+        description: "Could not copy address to clipboard.",
+        variant: "destructive",
+      });
     }
   };
+
+  if (!walletAddress) { // Render nothing or a placeholder if walletAddress is not available
+    return null;
+  }
 
   return (
     <SectionCard
@@ -39,6 +47,7 @@ const WalletSection = ({ walletAddress }: WalletSectionProps) => {
           onClick={copyAddress}
           variant="outline"
           className={outlineButtonStyles}
+          disabled={!walletAddress} // Disable button if no address
         >
           {copied ? "Copied!" : "Copy Address"}
         </Button>
