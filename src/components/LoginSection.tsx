@@ -1,12 +1,29 @@
 import { Button } from "@/components/ui/button";
 import { SectionCard } from "@/components/ui/section-card";
 import { buttonStyles } from "@/utils/common";
+import { useCivicAuth } from "@/hooks/useCivicAuth"; // Import the hook
 
-interface LoginSectionProps {
-  onLogin: () => void;
-}
+const LoginSection = () => { // Remove onLogin prop
+  const { login, logout, connected, pending, error, walletAddress } = useCivicAuth(); // Use the hook, add walletAddress
 
-const LoginSection = ({ onLogin }: LoginSectionProps) => {
+  if (connected) {
+    return (
+      <SectionCard
+        title="Logged In"
+        description={`You are connected with wallet: ${walletAddress || 'N/A'}`} // Display walletAddress
+        centered
+      >
+        <Button
+          onClick={logout} // Use logout from the hook
+          className={buttonStyles}
+          variant="outline"
+        >
+          Log Out
+        </Button>
+      </SectionCard>
+    );
+  }
+
   return (
     <SectionCard
       title="Get Started"
@@ -14,11 +31,13 @@ const LoginSection = ({ onLogin }: LoginSectionProps) => {
       centered
     >
       <Button 
-        onClick={onLogin}
+        onClick={login} // Use login from the hook
         className={buttonStyles}
+        disabled={pending} // Disable button when pending
       >
-        Log in with Civic
+        {pending ? 'Logging in...' : 'Log in with Civic'}
       </Button>
+      {error && <p className="text-red-500 mt-2">{error}</p>}
     </SectionCard>
   );
 };

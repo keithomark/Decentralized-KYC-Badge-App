@@ -1,10 +1,13 @@
 import { Connection, PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js';
-import { Metaplex, keypairIdentity, bundlrStorage } from '@metaplex-foundation/js';
+import { Metaplex, walletAdapterIdentity, bundlrStorage } from '@metaplex-foundation/js'; // Changed keypairIdentity to walletAdapterIdentity
 import { useAuth } from '@civic/auth-web3';
 import { NFTStorage, File } from 'nft.storage';
 
 // Initialize NFT.Storage client
-const NFT_STORAGE_KEY = process.env.NFT_STORAGE_KEY || '';
+const NFT_STORAGE_KEY = import.meta.env.VITE_NFT_STORAGE_KEY || '';
+if (!NFT_STORAGE_KEY) {
+  console.warn("VITE_NFT_STORAGE_KEY is not set. Please update your .env file.");
+}
 const nftStorage = new NFTStorage({ token: NFT_STORAGE_KEY });
 
 // Badge metadata
@@ -33,16 +36,29 @@ export const mintKycBadge = async (wallet: ReturnType<typeof useAuth>['wallet'])
       throw new Error(`Insufficient SOL balance. Required: ${MIN_SOL_REQUIRED / LAMPORTS_PER_SOL} SOL`);
     }
 
-    // Upload badge image to IPFS
-    const imageBlob = new Blob([''], { type: 'image/png' }); // Replace with actual badge image
+    // Fetch placeholder badge image
+    const response = await fetch('/badge.png');
+    if (!response.ok) {
+      throw new Error(`Failed to fetch placeholder badge image: ${response.statusText}`);
+    }
+    const imageBase64 = await response.text();
+    // Convert base64 to Blob
+    const byteString = atob(imageBase64);
+    const ia = new Uint8Array(byteString.length);
+    for (let i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+    }
+    const imageBlob = new Blob([ia], { type: 'image/png' });
     const imageFile = new File([imageBlob], 'badge.png', { type: 'image/png' });
+
+    // Upload badge image to IPFS
     const imageCid = await nftStorage.storeBlob(imageFile);
     const imageUrl = `https://ipfs.io/ipfs/${imageCid}`;
 
     // Create and upload metadata to IPFS
     const metadata = {
-      ...BADGE_METADATA,
-      image: imageUrl,
+      ...BADGE_METADATA, // Spread existing metadata
+      image: imageUrl, // Update image to IPFS URL
     };
     const metadataBlob = new Blob([JSON.stringify(metadata)], { type: 'application/json' });
     const metadataFile = new File([metadataBlob], 'metadata.json', { type: 'application/json' });
@@ -51,7 +67,7 @@ export const mintKycBadge = async (wallet: ReturnType<typeof useAuth>['wallet'])
     
     // Initialize Metaplex with Bundlr storage
     const metaplex = Metaplex.make(connection)
-      .use(keypairIdentity(wallet))
+      .use(walletAdapterIdentity(wallet)) // Changed here
       .use(bundlrStorage());
     
     // Create NFT
