@@ -1,42 +1,45 @@
-import { Button } from "@/components/ui/button";
 import { SectionCard } from "@/components/ui/section-card";
-import { buttonStyles } from "@/utils/common";
 import { useCivicAuth } from "@/hooks/useCivicAuth"; // Import the hook
+import { UserButton } from '@civic/auth-web3/react'; // Import UserButton
 
-const LoginSection = () => { // Remove onLogin prop
-  const { login, logout, connected, pending, error, walletAddress } = useCivicAuth(); // Use the hook, add walletAddress
+const LoginSection = () => {
+  // login and logout functions from useCivicAuth are now placeholders.
+  // UserButton will handle the actual login/logout actions.
+  const { connected, pending, error, walletAddress } = useCivicAuth();
+
+  // The UserButton itself will show connection status and provide login/logout.
+  // We can adjust the surrounding text or remove it if UserButton is sufficient.
+
+  // If UserButton handles both login and logout states visually,
+  // the conditional rendering based on `connected` within this component might change.
+  // For now, let's keep the structure and see how UserButton behaves.
 
   if (connected) {
     return (
       <SectionCard
-        title="Logged In"
-        description={`You are connected with wallet: ${walletAddress || 'N/A'}`} // Display walletAddress
+        title="Manage Your Session" // Title changed
+        // Description can be simplified if UserButton shows address, or kept for clarity
+        description={`You are connected. Wallet: ${walletAddress || 'N/A'}`}
         centered
       >
-        <Button
-          onClick={logout} // Use logout from the hook
-          className={buttonStyles}
-          variant="outline"
-        >
-          Log Out
-        </Button>
+        <UserButton />
+        {/* The UserButton when connected usually shows user info and acts as a logout/menu */}
+        {pending && <p className="text-sm text-gray-500 mt-2">Processing...</p>}
+        {error && <p className="text-red-500 mt-2">{error}</p>}
       </SectionCard>
     );
   }
 
+  // When not connected, UserButton typically shows a "Log In" prompt
   return (
     <SectionCard
       title="Get Started"
-      description="We'll generate your secure wallet and verify your identity."
+      description="Connect with Civic to proceed. This will generate your secure wallet and allow identity verification."
       centered
     >
-      <Button 
-        onClick={login} // Use login from the hook
-        className={buttonStyles}
-        disabled={pending} // Disable button when pending
-      >
-        {pending ? 'Logging in...' : 'Log in with Civic'}
-      </Button>
+      <UserButton />
+      {/* UserButton should prompt for login here */}
+      {pending && <p className="text-sm text-gray-500 mt-2">Processing...</p>}
       {error && <p className="text-red-500 mt-2">{error}</p>}
     </SectionCard>
   );

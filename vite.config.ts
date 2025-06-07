@@ -15,9 +15,32 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      // Node.js core module polyfills
+      'crypto': 'crypto-browserify',
+      'stream': 'readable-stream',
+      'assert': 'assert/', // Trailing slash is important
+      'buffer': 'buffer/', // Trailing slash is important
+      'process': 'process/browser',
+      // Optional: Add more if specific errors arise for these
+      // 'url': 'url/',
+      // 'http': 'stream-http',
+      // 'https': 'https-browserify',
+      // 'zlib': 'browserify-zlib',
     },
   },
+  // Define global variables for Buffer and process, often needed by polyfills
+  define: {
+    'global.Buffer': 'global.Buffer || require("buffer").Buffer',
+    'global.process': 'global.process || require("process/browser")',
+  },
   optimizeDeps: {
+    esbuildOptions: {
+      define: {
+        global: 'globalThis',
+      },
+      // Optionally, inject Buffer and process for the pre-bundling phase if needed
+      // inject: [require.resolve('buffer/'), require.resolve('process/browser')],
+    },
     include: [
       '@solana/web3.js',
       '@metaplex-foundation/js',
